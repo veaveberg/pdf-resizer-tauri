@@ -177,9 +177,9 @@ function PDFDropZone() {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       ctx.clearRect(0, 0, CANVAS_WIDTH * dpr, CANVAS_HEIGHT * dpr);
-      const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim() || '#ECECEC';
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, CANVAS_WIDTH * dpr, CANVAS_HEIGHT * dpr);
+      // const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim() || '#ECECEC';
+      // ctx.fillStyle = bg;
+      // ctx.fillRect(0, 0, CANVAS_WIDTH * dpr, CANVAS_HEIGHT * dpr);
 
       // Load the PDF only once
       let pdf = pdfDocRef.current;
