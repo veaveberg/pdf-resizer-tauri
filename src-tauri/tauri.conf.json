@@ -64,7 +64,7 @@
     },
     "windows": [
       {
-        "title": "PDFResizer",
+        "title": "",
         "width": 600,
         "height": 768,
         "resizable": true,

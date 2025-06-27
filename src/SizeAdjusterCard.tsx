@@ -249,6 +249,7 @@ export default function SizeAdjusterCard({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5, width: '100%', justifyContent: 'space-between' }}>
             {/* Preset dropdown */}
             <select
+              className="preset-dropdown"
               value={A_SERIES.find(p => p.width === width && p.height === height)?.name || 'presets'}
               onChange={e => {
                 const preset = A_SERIES.find(p => p.name === e.target.value) || (e.target.value === 'edit' ? 'edit' : null);
