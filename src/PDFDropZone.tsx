@@ -17,7 +17,7 @@ import { open } from '@tauri-apps/api/dialog';
 import { invoke } from '@tauri-apps/api/tauri';
 
 // Set the workerSrc to the local bundled worker URL for pdf.js
-GlobalWorkerOptions.workerSrc = workerUrl;
+GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString();
 
 const PREVIEW_WIDTH = 250;
 const PREVIEW_HEIGHT = 200;

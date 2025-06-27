@@ -5,6 +5,16 @@ import svgr from 'vite-plugin-svgr';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), svgr()],
+  publicDir: "./public",
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          pdfjs_worker: ["pdfjs-dist/build/pdf.worker.mjs"],
+        },
+      },
+    },
+  },
 
   // Vite optons tailored for Tauri developemnt and only applied in `tauri dev` or `tauri build`
   ...(process.env.TAURI_DEBUG || process.env.TAURI_BUILD

@@ -64,9 +64,9 @@
     },
     "windows": [
       {
-        "title": "",
+        "title": "PDF Resizer",
         "width": 600,
-        "height": 768,
+        "height": 750,
         "resizable": true,
         "fullscreen": false,
         "visible": true,
@@ -74,10 +74,10 @@
         "alwaysOnTop": false,
         "skipTaskbar": false,
         "center": true,
-        "minWidth": 400,
-        "minHeight": 300,
-        "maxWidth": 1920,
-        "maxHeight": 1080,
+        "minWidth": 600,
+        "minHeight": 700,
+        "maxWidth": 600,
+        "maxHeight": 2000,
         "fileDropEnabled": false
       }
     ]
