@@ -254,7 +254,7 @@ export default function SizeAdjusterCard({
                 const preset = A_SERIES.find(p => p.name === e.target.value) || (e.target.value === 'edit' ? 'edit' : null);
                 handlePreset(preset || 'edit');
               }}
-              style={{ padding: '4px 8px', borderRadius: 8, border: '1px solid #ccc', width: 90 }}
+              style={{ padding: '8px 8px', borderRadius: 14, border: '1px solid rgba(0,0,0,0.13)', height: 38, appearance: 'none', background: 'var(--bg-color)', color: 'var(--text-color)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
             >
               <option value="presets" disabled>Presets</option>
               {A_SERIES.map(p => (
