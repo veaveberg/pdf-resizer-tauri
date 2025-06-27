@@ -34,6 +34,7 @@ jobs:
           dir
       - name: install app dependencies and build web
         run: npm install && npm run build
+        working-directory: .
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
