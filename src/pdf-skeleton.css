@@ -1,0 +1,24 @@
+.pdf-skeleton-loader {
+  background: linear-gradient(90deg, #ececec 25%, #f3f3f3 50%, #ececec 75%);
+  border-radius: 16px;
+  animation: pdf-pulse 1.2s infinite linear;
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+
+.pdf-skeleton-fade {
+  opacity: 0 !important;
+}
+
+.pdf-loading-bar {
+  background: rgba(40,40,40,0.13);
+  border-radius: 16px;
+  height: 100%;
+  transition: width 0.3s, opacity 0.5s;
+}
+
+@keyframes pdf-pulse {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+} 
