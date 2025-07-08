@@ -42,6 +42,8 @@ export default function SizeAdjusterCard({
   aspectRatio,
   SwapIcon,
   RemoveIcon,
+  onFocus,
+  onBlur,
 }: any) {
   const { mode, width, height } = adjuster;
   // Local state for input fields to allow free typing
@@ -331,7 +333,8 @@ export default function SizeAdjusterCard({
                 type="text"
                 value={widthInput}
                 onChange={handleWidth}
-                onBlur={handleWidthBlur}
+                onFocus={() => onFocus(adjuster.id)}
+                onBlur={() => { handleWidthBlur(); onBlur(); }}
                 onKeyDown={handleWidthKeyDown}
                 min={1}
                 style={{ width: 60, textAlign: 'right', borderRadius: 4, border: '1px solid #ccc', fontSize: 14, padding: '2px 4px', display: 'inline-block' }}
@@ -367,7 +370,8 @@ export default function SizeAdjusterCard({
                 type="text"
                 value={heightInput}
                 onChange={handleHeight}
-                onBlur={handleHeightBlur}
+                onFocus={() => onFocus(adjuster.id)}
+                onBlur={() => { handleHeightBlur(); onBlur(); }}
                 onKeyDown={handleHeightKeyDown}
                 min={1}
                 style={{ width: 60, minWidth: 60, maxWidth: 60, textAlign: 'right', borderRadius: 4, border: '1px solid #ccc', fontSize: 14, padding: '2px 4px', display: 'inline-block' }}

@@ -20,25 +20,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #242424;
-    --text-color: #ececec;
-    --secondary-color: #aaa;
-    --border-color-accent: #339cff;
-    --button-bg: #1a1a1a;
-    --button-text: #ececec;
-    --button-border: transparent;
-    --link-color: #8ab4f8;
-    --link-hover: #a5c9fa;
-    color: var(--text-color);
-    background-color: var(--bg-color);
-  }
-  button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-  }
-}
+
 
 a {
   font-weight: 500;

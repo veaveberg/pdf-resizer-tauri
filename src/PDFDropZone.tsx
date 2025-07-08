@@ -114,6 +114,10 @@ function PDFDropZone() {
   const [showPopover, setShowPopover] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictFiles, setConflictFiles] = useState<Array<{ fileName: string; isConflict: boolean; shouldOverwrite: boolean; originalPath?: string }>>([]);
+  const [focusedAdjusterId, setFocusedAdjusterId] = useState<string | null>(null);
+  const [cropOverlay, setCropOverlay] = useState<{ top: number; right: number; bottom: number; left: number } | null>(null);
+  const [renderedPdfCssSize, setRenderedPdfCssSize] = useState<{ width: number; height: number } | null>(null);
+  const [pdfRenderScale, setPdfRenderScale] = useState<number | null>(null);
 
   // Sync local state with trim
   useEffect(() => {
@@ -168,18 +172,8 @@ function PDFDropZone() {
       if (!canvasRef.current) return;
       const canvas = canvasRef.current;
       const dpr = window.devicePixelRatio || 1;
-      const CANVAS_WIDTH = (PREVIEW_WIDTH - 6);
-      const CANVAS_HEIGHT = (PREVIEW_HEIGHT - 6);
-      canvas.width = CANVAS_WIDTH * dpr;
-      canvas.height = CANVAS_HEIGHT * dpr;
-      canvas.style.width = CANVAS_WIDTH + 'px';
-      canvas.style.height = CANVAS_HEIGHT + 'px';
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.clearRect(0, 0, CANVAS_WIDTH * dpr, CANVAS_HEIGHT * dpr);
-      // const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim() || '#ECECEC';
-      // ctx.fillStyle = bg;
-      // ctx.fillRect(0, 0, CANVAS_WIDTH * dpr, CANVAS_HEIGHT * dpr);
+      const previewContainerWidth = PREVIEW_WIDTH;
+      const previewContainerHeight = PREVIEW_HEIGHT;
 
       // Load the PDF only once
       let pdf = pdfDocRef.current;
@@ -195,7 +189,8 @@ function PDFDropZone() {
           return;
         }
       }
-      // Clamp pageNum
+
+      // Clamp pageNum and get page
       const pageIndex = Math.max(0, Math.min(pageNum, pdf.numPages - 1));
       let page;
       try {
@@ -205,32 +200,48 @@ function PDFDropZone() {
         setRenderError('Failed to load PDF page.');
         return;
       }
+
       // Use the page's rotation property for correct orientation
       const viewport = page.getViewport({ scale: 1, rotation: page.rotate });
       setPdfSize({ width: viewport.width * MM_PER_POINT, height: viewport.height * MM_PER_POINT });
-      // Calculate scale to fit the preview area (in device pixels)
+
+      // Calculate scale to fit the preview area
       let scale = Math.min(
-        (CANVAS_WIDTH * dpr) / viewport.width,
-        (CANVAS_HEIGHT * dpr) / viewport.height
+        previewContainerWidth / viewport.width,
+        previewContainerHeight / viewport.height
       );
+
       // For large PDFs, render at lower scale
       if (pdfFile.size > 20 * 1024 * 1024) { // 20MB threshold
         scale = scale * 0.5;
       }
-      const scaledViewport = page.getViewport({ scale, rotation: page.rotate });
-      // Center the PDF page in the canvas
-      const offsetX = (CANVAS_WIDTH * dpr - scaledViewport.width) / 2;
-      const offsetY = (CANVAS_HEIGHT * dpr - scaledViewport.height) / 2;
-      ctx.save();
-      ctx.translate(offsetX, offsetY);
+
+      const scaledViewport = page.getViewport({ scale: scale * dpr, rotation: page.rotate });
+
+      // Resize canvas to be the exact size of the scaled PDF
+      canvas.width = scaledViewport.width;
+      canvas.height = scaledViewport.height;
+      canvas.style.width = `${scaledViewport.width / dpr}px`;
+      canvas.style.height = `${scaledViewport.height / dpr}px`;
+
+      setRenderedPdfCssSize({ width: scaledViewport.width / dpr, height: scaledViewport.height / dpr });
+      setPdfRenderScale(scale);
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Render the page with a transparent background
       try {
-        await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+        await page.render({
+          canvasContext: ctx,
+          viewport: scaledViewport,
+          backgroundColor: 'rgba(0,0,0,0)',
+        }).promise;
       } catch (err) {
         console.error('Error rendering PDF page:', err);
         setRenderError('Failed to render PDF page.');
         return;
       }
-      ctx.restore();
     } finally {
       setIsLoading(false);
     }
@@ -243,6 +254,51 @@ function PDFDropZone() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file, currentPage]);
+
+  // --- Crop preview logic ---
+  useEffect(() => {
+    if (!file || !pdfSize || !canvasRef.current || !renderedPdfCssSize || pdfRenderScale === null) {
+      setCropOverlay(null);
+      return;
+    }
+
+    const POINTS_PER_MM = 1 / MM_PER_POINT;
+    const trimPoints = trim * POINTS_PER_MM;
+
+    // Calculate trim overlay based on the actual rendered PDF size
+    let overlay = {
+      top: trimPoints * pdfRenderScale,
+      bottom: trimPoints * pdfRenderScale,
+      left: trimPoints * pdfRenderScale,
+      right: trimPoints * pdfRenderScale,
+    };
+
+    const focusedAdjuster = adjusters.find(adj => adj.id === focusedAdjusterId);
+
+    if (focusedAdjuster && focusedAdjuster.mode === 'fill') {
+      const targetWidth = focusedAdjuster.width * POINTS_PER_MM;
+      const targetHeight = focusedAdjuster.height * POINTS_PER_MM;
+
+      // Calculate the scale needed to fill the target dimensions, considering the trimmed PDF size
+      const effectivePdfWidth = pdfSize.width - 2 * trimPoints;
+      const effectivePdfHeight = pdfSize.height - 2 * trimPoints;
+
+      const fillScale = Math.max(targetWidth / effectivePdfWidth, targetHeight / effectivePdfHeight);
+
+      // Calculate the excess area in PDF points that will be cropped by the fill operation
+      const excessWidthPoints = (effectivePdfWidth * fillScale - targetWidth) / 2;
+      const excessHeightPoints = (effectivePdfHeight * fillScale - targetHeight) / 2;
+
+      // Add the excess cropping to the overlay, scaled to CSS pixels
+      overlay.left += excessWidthPoints * pdfRenderScale;
+      overlay.right += excessWidthPoints * pdfRenderScale;
+      overlay.top += excessHeightPoints * pdfRenderScale;
+      overlay.bottom += excessHeightPoints * pdfRenderScale;
+    }
+
+    setCropOverlay(overlay);
+
+  }, [file, pdfSize, trim, adjusters, focusedAdjusterId, renderedPdfCssSize, pdfRenderScale]);
 
   // Redraw PDF preview on theme change
   useEffect(() => {
@@ -286,6 +342,7 @@ function PDFDropZone() {
   };
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setDragActive(false);
     handleFiles(e.dataTransfer.files);
   };
@@ -339,6 +396,20 @@ function PDFDropZone() {
       ...adjs.slice(1)
     ]);
   };
+
+  // Global drag and drop prevention
+  useEffect(() => {
+    const preventDefaults = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    window.addEventListener('dragover', preventDefaults, false);
+    window.addEventListener('drop', preventDefaults, false);
+    return () => {
+      window.removeEventListener('dragover', preventDefaults, false);
+      window.removeEventListener('drop', preventDefaults, false);
+    };
+  }, []);
 
   // Update adjusters when aspect ratio changes (e.g., when trim changes)
   useEffect(() => {
@@ -524,49 +595,50 @@ function PDFDropZone() {
     try {
       console.log('[Export] Starting export. isTauri:', isTauri);
       let folder = exportFolder;
-      if (!folder) {
-        const selected = await open({ directory: true, multiple: false, title: 'Select export folder' });
-        if (typeof selected === 'string') {
-          folder = selected;
-          setExportFolder(selected);
-        } else {
-          setSaveStatus('idle');
-          return;
-        }
-      }
-      if (useSubfolder && subfolderName.trim()) {
-        folder = folder.replace(/\/+$/, '') + '/' + subfolderName.trim().replace(/\/+$/, '');
-      }
-
-      const filePathsToCheck: string[] = [];
-      const proposedFiles: Array<{ fileName: string; isConflict: boolean; shouldOverwrite: boolean; originalPath?: string }> = [];
-
-      for (const adj of adjusters) {
-        const processedFileName = replaceFilenameTokens(fileName.trim() ? fileName.trim() : 'output', adj.width, adj.height);
-        const savePath = folder.replace(/\/+$/, '') + '/' + processedFileName + '.pdf';
-        filePathsToCheck.push(savePath);
-        proposedFiles.push({
-          fileName: processedFileName + '.pdf',
-          isConflict: false, // Will be updated after check
-          shouldOverwrite: true, // Default to true
-          originalPath: savePath,
-        });
-      }
 
       if (isTauri) {
+        if (!folder) {
+          const selected = await open({ directory: true, multiple: false, title: 'Select export folder' });
+          if (typeof selected === 'string') {
+            folder = selected;
+            setExportFolder(selected);
+          } else {
+            setSaveStatus('idle');
+            return;
+          }
+        }
+        if (useSubfolder && subfolderName.trim()) {
+          folder = folder.replace(/\/+$/, '') + '/' + subfolderName.trim().replace(/\/+$/, '');
+        }
+
+        const filePathsToCheck: string[] = [];
+        const proposedFiles: Array<{ fileName: string; isConflict: boolean; shouldOverwrite: boolean; originalPath?: string }> = [];
+
+        for (const adj of adjusters) {
+          const processedFileName = replaceFilenameTokens(fileName.trim() ? fileName.trim() : 'output', adj.width, adj.height);
+          const savePath = folder.replace(/\/+$/, '') + '/' + processedFileName + '.pdf';
+          filePathsToCheck.push(savePath);
+          proposedFiles.push({
+            fileName: processedFileName + '.pdf',
+            isConflict: false,
+            shouldOverwrite: true,
+            originalPath: savePath,
+          });
+        }
+
         const existenceResults: boolean[] = await invoke('check_file_existence', { filePaths: filePathsToCheck });
         let hasConflicts = false;
         const updatedConflictFiles = proposedFiles.map((file, index) => {
           const isConflict = existenceResults[index];
           if (isConflict) hasConflicts = true;
-          return { ...file, isConflict, shouldOverwrite: true }; // Default to overwrite all files
+          return { ...file, isConflict, shouldOverwrite: true };
         });
 
         if (hasConflicts) {
           setConflictFiles(updatedConflictFiles);
           setSaveStatus('conflict');
           setShowPopover(true);
-          return; // Stop here, wait for user decision
+          return;
         }
       }
 
@@ -655,7 +727,8 @@ function PDFDropZone() {
           position: 'relative',
           boxSizing: 'border-box',
           marginBottom: 0,
-          padding: 2,
+          overflow: 'hidden',
+          transform: 'translateZ(0)',
         }}
       >
         <input
@@ -691,12 +764,25 @@ function PDFDropZone() {
               style={{
                 display: 'block',
                 background: 'transparent',
-                borderRadius: 13,
                 pointerEvents: 'none',
-                width: '100%',
-                height: '100%',
               }}
             />
+            {cropOverlay && renderedPdfCssSize && (
+              <div style={{
+                position: 'absolute',
+                top: (PREVIEW_HEIGHT - renderedPdfCssSize.height) / 2,
+                left: (PREVIEW_WIDTH - renderedPdfCssSize.width) / 2,
+                width: renderedPdfCssSize.width,
+                height: renderedPdfCssSize.height,
+                pointerEvents: 'none',
+                overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: cropOverlay.top, background: 'rgba(0,0,0,0.5)' }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: cropOverlay.bottom, background: 'rgba(0,0,0,0.5)' }} />
+                <div style={{ position: 'absolute', top: cropOverlay.top, bottom: cropOverlay.bottom, left: 0, width: cropOverlay.left, background: 'rgba(0,0,0,0.5)' }} />
+                <div style={{ position: 'absolute', top: cropOverlay.top, bottom: cropOverlay.bottom, right: 0, width: cropOverlay.right, background: 'rgba(0,0,0,0.5)' }} />
+              </div>
+            )}
             {/* Pagination overlay */}
             {totalPages > 1 && (
               <div style={{
@@ -986,6 +1072,8 @@ function PDFDropZone() {
               onChange={(updated: any) => {
                 setAdjusters(adjs => adjs.map((a, i) => i === idx ? { ...a, ...updated } : a));
               }}
+              onFocus={setFocusedAdjusterId}
+              onBlur={() => setFocusedAdjusterId(null)}
               onRemove={() => setAdjusters(adjs => adjs.filter((_, i) => i !== idx))}
               isRemovable={adjusters.length > 1}
               aspectRatio={aspectRatio}
