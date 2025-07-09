@@ -52,8 +52,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: src-tauri/target/release/bundle/nsis/pdfresizer-tauri_0.0.1_x64-setup.exe
-          asset_name: pdfresizer-tauri_0.0.1_x64-setup.exe
+          asset_path: src-tauri/target/release/bundle/nsis/pdfresizer-tauri___VERSION___x64-setup.exe
+          asset_name: pdfresizer-tauri___VERSION___x64-setup.exe
           asset_content_type: application/octet-stream
       - name: Upload Portable Executable
         uses: actions/upload-release-asset@v1
@@ -62,5 +62,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: src-tauri/target/release/pdfresizer-tauri.exe
-          asset_name: pdfresizer-tauri_0.0.1_x64_portable.exe
+          asset_name: pdfresizer-tauri___VERSION___x64_portable.exe
           asset_content_type: application/octet-stream
