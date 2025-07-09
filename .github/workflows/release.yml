@@ -54,6 +54,8 @@ jobs:
       - name: install app dependencies and build web
         run: npm install && npm run build
         working-directory: .
+      - name: Get version from tag
+        run: echo "APP_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - uses: tauri-apps/tauri-action@v0.5.20
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,5 +73,5 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: src-tauri/target/release/pdfresizer-tauri.exe
-          asset_name: pdfresizer-tauri___VERSION___x64_portable.exe
+          asset_name: pdfresizer_${{ env.APP_VERSION }}_win_x64.exe
           asset_content_type: application/octet-stream
