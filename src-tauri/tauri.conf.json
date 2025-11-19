@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "pdfresizer-tauri",
-    "version": "0.0.0"
+    "version": "0.0.4"
   },
   "tauri": {
     "allowlist": {
@@ -38,7 +38,7 @@
         "icons/AppIcon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.pdfresizer.dev",
+      "identifier": "com.pdfresizer.app",
       "longDescription": "",
       "macOS": {
         "entitlements": null,

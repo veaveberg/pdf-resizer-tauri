@@ -11,7 +11,6 @@ import FileNameEditor from './FileNameEditor';
 import SaveButtonWithStatus from './SaveButtonWithStatus';
 import './pdf-skeleton.css';
 import { PDFDocument } from 'pdf-lib';
-import { save } from '@tauri-apps/plugin-dialog';
 import { writeBinaryFile, exists } from '@tauri-apps/api/fs';
 import { open } from '@tauri-apps/api/dialog';
 import { invoke } from '@tauri-apps/api/tauri';
