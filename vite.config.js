@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react(), svgr()],
   publicDir: "./public",
   build: {
+    target: "esnext",
     rollupOptions: {
       output: {
         manualChunks: {
