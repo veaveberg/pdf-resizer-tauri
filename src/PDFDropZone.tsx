@@ -1173,7 +1173,7 @@ function PDFDropZone() {
         />
       )}
       {/* Export location section */}
-      {file && isTauri && (
+      {file && (
         <div style={{ width: 400, maxWidth: '100%', margin: '24px auto 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <label style={{ fontWeight: 500, fontSize: 16, marginBottom: 6, color: '#222' }}>Export location:</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
