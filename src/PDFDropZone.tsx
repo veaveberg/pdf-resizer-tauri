@@ -491,6 +491,17 @@ function PDFDropZone() {
       if (typeof selected === 'string') {
         setExportFolder(selected);
       }
+    } else if ('showDirectoryPicker' in window) {
+      // Web: Use File System Access API
+      try {
+        // @ts-ignore
+        const handle = await window.showDirectoryPicker();
+        setExportDirHandle(handle);
+        setExportFolder(handle.name);
+      } catch (err) {
+        // User cancelled or error
+        console.log('Directory picker cancelled or failed', err);
+      }
     } else {
       // Fallback for web: trigger the hidden file input
       folderInputRef.current?.click();
@@ -500,8 +511,10 @@ function PDFDropZone() {
   // Helper to detect Tauri
   const isTauri = typeof window !== 'undefined' && Boolean((window as any).__TAURI_IPC__);
 
+  const [exportDirHandle, setExportDirHandle] = useState<any>(null);
+
   // Helper function to perform the actual PDF saving
-  const performSave = async (folder: string, adjustersToSave: Adjuster[], pagesToProcess: number[], fileToSave: File, baseFileName: string, currentTrim: number, currentPageNum: number, pageSelectionType: 'single' | 'all') => {
+  const performSave = async (folder: string, adjustersToSave: Adjuster[], pagesToProcess: number[], fileToSave: File, baseFileName: string, currentTrim: number, currentPageNum: number, pageSelectionType: 'single' | 'all', dirHandle?: any) => {
     const arrayBuffer = await fileToSave.arrayBuffer();
     const pdfDoc = await PDFDocument.load(arrayBuffer);
 
@@ -568,6 +581,16 @@ function PDFDropZone() {
 
       if (isTauri) {
         await writeBinaryFile({ path: savePath, contents: pdfBytes });
+      } else if (dirHandle) {
+        // Save using File System Access API
+        let targetHandle = dirHandle;
+        if (useSubfolder && subfolderName.trim()) {
+          targetHandle = await dirHandle.getDirectoryHandle(subfolderName.trim(), { create: true });
+        }
+        const fileHandle = await targetHandle.getFileHandle(processedFileName + '.pdf', { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(pdfBytes);
+        await writable.close();
       } else {
         // Browser fallback: trigger download
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -639,6 +662,47 @@ function PDFDropZone() {
           setShowPopover(true);
           return;
         }
+      } else if (exportDirHandle) {
+        // Web: Check for conflicts using File System Access API
+        let targetHandle = exportDirHandle;
+        if (useSubfolder && subfolderName.trim()) {
+          try {
+            targetHandle = await exportDirHandle.getDirectoryHandle(subfolderName.trim(), { create: false });
+          } catch (e) {
+            // Subfolder doesn't exist, so no conflicts possible inside it
+            targetHandle = null;
+          }
+        }
+
+        if (targetHandle) {
+          const proposedFiles: Array<{ fileName: string; isConflict: boolean; shouldOverwrite: boolean }> = [];
+          let hasConflicts = false;
+
+          for (const adj of adjusters) {
+            const processedFileName = replaceFilenameTokens(fileName.trim() ? fileName.trim() : 'output', adj.width, adj.height);
+            const finalName = processedFileName + '.pdf';
+            let isConflict = false;
+            try {
+              await targetHandle.getFileHandle(finalName, { create: false });
+              isConflict = true;
+              hasConflicts = true;
+            } catch (e) {
+              // File doesn't exist
+            }
+            proposedFiles.push({
+              fileName: finalName,
+              isConflict,
+              shouldOverwrite: true
+            });
+          }
+
+          if (hasConflicts) {
+            setConflictFiles(proposedFiles);
+            setSaveStatus('conflict');
+            setShowPopover(true);
+            return;
+          }
+        }
       }
 
       // If no conflicts or in browser, proceed with saving
@@ -646,7 +710,7 @@ function PDFDropZone() {
         ? Array.from({ length: pdfDocRef.current?.numPages || 1 }, (_, i) => i)
         : [currentPage];
 
-      await performSave(folder, adjusters, pagesToProcess, file, fileName, trim, currentPage, pageSelection);
+      await performSave(folder, adjusters, pagesToProcess, file, fileName, trim, currentPage, pageSelection, exportDirHandle);
       setSaveStatus('success');
       fadeTimeout.current = setTimeout(() => setSaveStatus('idle'), 5000);
 
@@ -675,7 +739,7 @@ function PDFDropZone() {
         folder = folder.replace(/\/+$/, '') + '/' + subfolderName.trim().replace(/\/+$/, '');
       }
 
-      await performSave(folder, adjustersToSave, pagesToProcess, file, fileName, trim, currentPage, pageSelection);
+      await performSave(folder, adjustersToSave, pagesToProcess, file, fileName, trim, currentPage, pageSelection, exportDirHandle);
       setSaveStatus('success');
       fadeTimeout.current = setTimeout(() => setSaveStatus('idle'), 5000);
       setConflictFiles([]); // Clear conflicts after saving
