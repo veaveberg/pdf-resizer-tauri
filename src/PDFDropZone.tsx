@@ -14,6 +14,7 @@ import { PDFDocument } from 'pdf-lib';
 import { writeBinaryFile, exists } from '@tauri-apps/api/fs';
 import { open } from '@tauri-apps/api/dialog';
 import { invoke } from '@tauri-apps/api/tauri';
+import PresetsEditor from './PresetsEditor';
 
 // Set the workerSrc to the local bundled worker URL for pdf.js
 GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString();
@@ -21,6 +22,16 @@ GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', impor
 const PREVIEW_WIDTH = 250;
 const PREVIEW_HEIGHT = 200;
 const MM_PER_POINT = 25.4 / 72;
+
+const DEFAULT_PRESETS = [
+  { name: 'A0', width: 841, height: 1189 },
+  { name: 'A1', width: 594, height: 841 },
+  { name: 'A2', width: 420, height: 594 },
+  { name: 'A3', width: 297, height: 420 },
+  { name: 'A4', width: 210, height: 297 },
+  { name: 'A5', width: 148, height: 210 },
+  { name: 'A6', width: 105, height: 148 },
+];
 
 // --- Filename token replacement ---
 const SIZE_TOKEN = '*size*';
@@ -99,7 +110,19 @@ function PDFDropZone() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const pdfDocRef = useRef<any>(null); // store loaded pdf.js doc
-  const [adjusters, setAdjusters] = useState<Adjuster[]>([{ id: crypto.randomUUID(), mode: 'fill', width: 210, height: 297, source: 'pdf' }]);
+
+  const STORAGE_KEY_PRESETS = 'pdf_resizer_presets';
+  const STORAGE_KEY_ADJUSTERS = 'pdf_resizer_adjusters';
+
+  const [adjusters, setAdjusters] = useState<Adjuster[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_ADJUSTERS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to load adjusters', e);
+    }
+    return [{ id: crypto.randomUUID(), mode: 'fill', width: 210, height: 297, source: 'pdf' }];
+  });
   const [trimInput, setTrimInput] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -110,6 +133,7 @@ function PDFDropZone() {
   const [exportFolder, setExportFolder] = useState('');
   const [useSubfolder, setUseSubfolder] = useState(false);
   const [subfolderName, setSubfolderName] = useState('PDF');
+  const [specifyExportLocation, setSpecifyExportLocation] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [conflictFiles, setConflictFiles] = useState<Array<{ fileName: string; isConflict: boolean; shouldOverwrite: boolean; originalPath?: string }>>([]);
@@ -117,6 +141,26 @@ function PDFDropZone() {
   const [cropOverlay, setCropOverlay] = useState<{ top: number; right: number; bottom: number; left: number } | null>(null);
   const [renderedPdfCssSize, setRenderedPdfCssSize] = useState<{ width: number; height: number } | null>(null);
   const [pdfRenderScale, setPdfRenderScale] = useState<number | null>(null);
+  const [presets, setPresets] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PRESETS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to load presets', e);
+    }
+    return DEFAULT_PRESETS;
+  });
+  const [showPresetsEditor, setShowPresetsEditor] = useState(false);
+  const [newPresetState, setNewPresetState] = useState({ name: '', width: '', height: '' });
+
+  // Persistence effects
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
+  }, [presets]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_ADJUSTERS, JSON.stringify(adjusters));
+  }, [adjusters]);
 
   // Sync local state with trim
   useEffect(() => {
@@ -205,15 +249,10 @@ function PDFDropZone() {
       setPdfSize({ width: viewport.width * MM_PER_POINT, height: viewport.height * MM_PER_POINT });
 
       // Calculate scale to fit the preview area
-      let scale = Math.min(
+      const scale = Math.min(
         previewContainerWidth / viewport.width,
         previewContainerHeight / viewport.height
       );
-
-      // For large PDFs, render at lower scale
-      if (pdfFile.size > 20 * 1024 * 1024) { // 20MB threshold
-        scale = scale * 0.5;
-      }
 
       const scaledViewport = page.getViewport({ scale: scale * dpr, rotation: page.rotate });
 
@@ -510,6 +549,8 @@ function PDFDropZone() {
 
   // Helper to detect Tauri
   const isTauri = typeof window !== 'undefined' && Boolean((window as any).__TAURI_IPC__);
+  const isFileSystemAccessSupported = typeof window !== 'undefined' && 'showDirectoryPicker' in window;
+  const isExportDirSupported = isTauri || isFileSystemAccessSupported;
 
   const [exportDirHandle, setExportDirHandle] = useState<any>(null);
 
@@ -593,7 +634,8 @@ function PDFDropZone() {
         await writable.close();
       } else {
         // Browser fallback: trigger download
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        // Use application/octet-stream to force download on iOS/mobile instead of opening preview
+        const blob = new Blob([pdfBytes], { type: 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -617,19 +659,30 @@ function PDFDropZone() {
     try {
       console.log('[Export] Starting export. isTauri:', isTauri);
       let folder = exportFolder;
+      let dirHandle = exportDirHandle;
 
-      if (isTauri) {
-        if (!folder) {
-          const selected = await open({ directory: true, multiple: false, title: 'Select export folder' });
-          if (typeof selected === 'string') {
-            folder = selected;
-            setExportFolder(selected);
-          } else {
-            setSaveStatus('idle');
-            return;
+      if (!specifyExportLocation) {
+        if (!isTauri) {
+          dirHandle = null; // Force download behavior on web
+        }
+        // On Tauri, we use the default 'folder' (source path)
+      } else {
+        if (isTauri) {
+          if (!folder) {
+            const selected = await open({ directory: true, multiple: false, title: 'Select export folder' });
+            if (typeof selected === 'string') {
+              folder = selected;
+              setExportFolder(selected);
+            } else {
+              setSaveStatus('idle');
+              return;
+            }
           }
         }
-        if (useSubfolder && subfolderName.trim()) {
+      }
+
+      if (isTauri) {
+        if (specifyExportLocation && useSubfolder && subfolderName.trim()) {
           folder = folder.replace(/\/+$/, '') + '/' + subfolderName.trim().replace(/\/+$/, '');
         }
 
@@ -662,12 +715,12 @@ function PDFDropZone() {
           setShowPopover(true);
           return;
         }
-      } else if (exportDirHandle) {
+      } else if (dirHandle) {
         // Web: Check for conflicts using File System Access API
-        let targetHandle = exportDirHandle;
-        if (useSubfolder && subfolderName.trim()) {
+        let targetHandle = dirHandle;
+        if (specifyExportLocation && useSubfolder && subfolderName.trim()) {
           try {
-            targetHandle = await exportDirHandle.getDirectoryHandle(subfolderName.trim(), { create: false });
+            targetHandle = await dirHandle.getDirectoryHandle(subfolderName.trim(), { create: false });
           } catch (e) {
             // Subfolder doesn't exist, so no conflicts possible inside it
             targetHandle = null;
@@ -710,7 +763,7 @@ function PDFDropZone() {
         ? Array.from({ length: pdfDocRef.current?.numPages || 1 }, (_, i) => i)
         : [currentPage];
 
-      await performSave(folder, adjusters, pagesToProcess, file, fileName, trim, currentPage, pageSelection, exportDirHandle);
+      await performSave(folder, adjusters, pagesToProcess, file, fileName, trim, currentPage, pageSelection, dirHandle);
       setSaveStatus('success');
       fadeTimeout.current = setTimeout(() => setSaveStatus('idle'), 5000);
 
@@ -735,7 +788,7 @@ function PDFDropZone() {
         : [currentPage];
 
       let folder = exportFolder;
-      if (useSubfolder && subfolderName.trim()) {
+      if (specifyExportLocation && useSubfolder && subfolderName.trim()) {
         folder = folder.replace(/\/+$/, '') + '/' + subfolderName.trim().replace(/\/+$/, '');
       }
 
@@ -767,6 +820,7 @@ function PDFDropZone() {
       width: '100%',
       boxSizing: 'border-box',
       paddingTop: 32,
+      paddingBottom: 32,
       background: '#ECECEC',
     }}>
       {/* Title: always show in Tauri */}
@@ -1142,6 +1196,8 @@ function PDFDropZone() {
               aspectRatio={aspectRatio}
               SwapIcon={ArrowLeftArrowRight}
               RemoveIcon={MinusCircleFill}
+              presets={presets}
+              onEditPresets={() => setShowPresetsEditor(true)}
             />
           ))}
           <button
@@ -1174,9 +1230,45 @@ function PDFDropZone() {
       )}
       {/* Export location section */}
       {file && (
-        <div style={{ width: 400, maxWidth: '100%', margin: '24px auto 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <label style={{ fontWeight: 500, fontSize: 16, marginBottom: 6, color: '#222' }}>Export location:</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%' }}>
+        <div
+          title={!isExportDirSupported ? "Not supported by your browser. Chromium-based browsers are recommended" : undefined}
+          style={{
+            width: 400,
+            maxWidth: '100%',
+            margin: '24px auto 0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            opacity: isExportDirSupported ? 1 : 0.5,
+          }}
+        >
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            fontWeight: 500,
+            fontSize: 16,
+            marginBottom: 10,
+            color: '#222',
+            cursor: isExportDirSupported ? 'pointer' : 'not-allowed'
+          }}>
+            <input
+              type="checkbox"
+              checked={specifyExportLocation}
+              onChange={e => setSpecifyExportLocation(e.target.checked)}
+              style={{ marginRight: 8 }}
+              disabled={!isExportDirSupported}
+            />
+            Specify export location
+          </label>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            width: '100%',
+            opacity: specifyExportLocation ? 1 : 0.5,
+            pointerEvents: specifyExportLocation ? 'auto' : 'none',
+            transition: 'opacity 0.2s'
+          }}>
             <button
               type="button"
               onClick={handlePickFolder}
@@ -1230,6 +1322,16 @@ function PDFDropZone() {
             setShowPopover(false);
             setSaveStatus('idle');
           }}
+        />
+      )}
+      {showPresetsEditor && (
+        <PresetsEditor
+          presets={presets}
+          defaultPresets={DEFAULT_PRESETS}
+          onSave={(newPresets) => setPresets(newPresets)}
+          onClose={() => setShowPresetsEditor(false)}
+          newPresetState={newPresetState}
+          onNewPresetStateChange={setNewPresetState}
         />
       )}
     </div>

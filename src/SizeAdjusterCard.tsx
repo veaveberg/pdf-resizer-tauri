@@ -1,14 +1,6 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
 
-const A_SERIES = [
-  { name: 'A0', width: 841, height: 1189 },
-  { name: 'A1', width: 594, height: 841 },
-  { name: 'A2', width: 420, height: 594 },
-  { name: 'A3', width: 297, height: 420 },
-  { name: 'A4', width: 210, height: 297 },
-  { name: 'A5', width: 148, height: 210 },
-  { name: 'A6', width: 105, height: 148 },
-];
+
 
 const MODES = [
   { label: 'Fill', value: 'fill' },
@@ -44,6 +36,8 @@ export default function SizeAdjusterCard({
   RemoveIcon,
   onFocus,
   onBlur,
+  presets,
+  onEditPresets,
 }: any) {
   const { mode, width, height } = adjuster;
   // Local state for input fields to allow free typing
@@ -78,7 +72,7 @@ export default function SizeAdjusterCard({
       height = preset.width;
     }
     // Always set fill values to the (possibly swapped) preset
-    onChange({ ...adjuster, width, height, mode: 'fill', source: 'pdf' });
+    onChange({ ...adjuster, width, height, mode: 'fill', source: 'manual' });
   };
   const handleMode = (newMode: any) => {
     if (newMode === 'fitWidth' && aspectRatio) {
@@ -252,15 +246,23 @@ export default function SizeAdjusterCard({
             {/* Preset dropdown */}
             <select
               className="preset-dropdown"
-              value={A_SERIES.find(p => p.width === width && p.height === height)?.name || 'presets'}
+              value={presets.find((p: any) => {
+                const matchNormal = Math.abs(p.width - width) < 0.05 && Math.abs(p.height - height) < 0.05;
+                const matchRotated = Math.abs(p.width - height) < 0.05 && Math.abs(p.height - width) < 0.05;
+                return matchNormal || matchRotated;
+              })?.name || 'presets'}
               onChange={e => {
-                const preset = A_SERIES.find(p => p.name === e.target.value) || (e.target.value === 'edit' ? 'edit' : null);
-                handlePreset(preset || 'edit');
+                if (e.target.value === 'edit') {
+                  onEditPresets();
+                  return;
+                }
+                const preset = presets.find((p: any) => p.name === e.target.value);
+                if (preset) handlePreset(preset);
               }}
               style={{ padding: '8px 8px', borderRadius: 14, border: '1px solid rgba(0,0,0,0.13)', height: 38, appearance: 'none', background: 'var(--bg-color)', color: 'var(--text-color)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
             >
               <option value="presets" disabled>Presets</option>
-              {A_SERIES.map(p => (
+              {presets.map((p: any) => (
                 <option key={p.name} value={p.name}>{p.name}</option>
               ))}
               <option disabled>──────────</option>

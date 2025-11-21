@@ -34,6 +34,7 @@ jobs:
         run: npm install && npm run build
         working-directory: .
       - uses: tauri-apps/tauri-action@v0
+        id: tauri-action
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -42,3 +43,13 @@ jobs:
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: true
           prerelease: false
+      - name: Upload Portable EXE
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.tauri-action.outputs.releaseUploadUrl }}
+          asset_path: src-tauri/target/release/pdfresizer-tauri.exe
+          asset_name: pdfresizer-tauri-portable.exe
+          asset_content_type: application/vnd.microsoft.portable-executable
