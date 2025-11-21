@@ -1,7 +1,11 @@
-# Tauri + React
+# PDF Resizer
 
-This template should help get you started developing with Tauri and React in Vite.
+A powerful web app for resizing PDFs
 
-## Recommended IDE Setup
+## License
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Created by [@veaveberg](https://github.com/veaveberg)
