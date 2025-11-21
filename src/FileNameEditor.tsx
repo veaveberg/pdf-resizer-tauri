@@ -70,8 +70,8 @@ const FileNameEditor: React.FC<FileNameEditorProps> = ({ value, originalValue, o
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: 400, maxWidth: '100%', margin: '24px auto 0 auto' }}>
-      <label style={{ fontWeight: 500, fontSize: 16, marginBottom: 6, color: '#222' }}>Filename:</label>
-      <div style={{ display: 'flex', alignItems: 'center'}}>
+      <label style={{ fontWeight: 500, fontSize: 16, marginBottom: 6, color: 'var(--text-color)' }}>Filename:</label>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <input
           ref={inputRef}
           type="text"
@@ -83,9 +83,9 @@ const FileNameEditor: React.FC<FileNameEditorProps> = ({ value, originalValue, o
             fontSize: 16,
             padding: '6px 10px',
             borderRadius: 8,
-            border: '1px solid #ccc',
-            background: 'Field',
-            color: 'FieldText',
+            border: '1px solid var(--input-border)',
+            background: 'var(--input-bg)',
+            color: 'var(--text-color)',
             minWidth: 0,
             boxSizing: 'border-box',
             transition: 'border 0.2s',
@@ -118,25 +118,25 @@ const FileNameEditor: React.FC<FileNameEditorProps> = ({ value, originalValue, o
       </div>
       {/* Token hint row and autoreplace buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, width: '100%' }}>
-        <span style={{ fontSize: 13, color: '#888' }}>Insert:</span>
-        <button type="button" style={{ fontSize: 13, color: '#007aff', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }} onClick={() => insertToken(SIZE_TOKEN)}>{SIZE_TOKEN}</button>
-        <button type="button" style={{ fontSize: 13, color: '#007aff', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }} onClick={() => insertToken(YYMMDD_TOKEN)}>{YYMMDD_TOKEN}</button>
-        <button type="button" style={{ fontSize: 13, color: '#007aff', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }} onClick={() => insertToken(DDMMYY_TOKEN)}>{DDMMYY_TOKEN}</button>
+        <span style={{ fontSize: 13, color: 'var(--secondary-color)' }}>Insert:</span>
+        <button type="button" style={{ fontSize: 13, color: 'var(--link-color)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }} onClick={() => insertToken(SIZE_TOKEN)}>{SIZE_TOKEN}</button>
+        <button type="button" style={{ fontSize: 13, color: 'var(--link-color)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }} onClick={() => insertToken(YYMMDD_TOKEN)}>{YYMMDD_TOKEN}</button>
+        <button type="button" style={{ fontSize: 13, color: 'var(--link-color)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }} onClick={() => insertToken(DDMMYY_TOKEN)}>{DDMMYY_TOKEN}</button>
       </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2, width: '100%' }}> 
-        <span style={{fontSize: 13, color: '#888' }}>Autoreplace:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2, width: '100%' }}>
+        <span style={{ fontSize: 13, color: 'var(--secondary-color)' }}>Autoreplace:</span>
         <button type="button"
-          style={{ fontSize: 13, color: stringContainsSizePattern(value) ? '#007aff' : '#bbb', background: 'none', border: '1px solid #eee', cursor: stringContainsSizePattern(value) ? 'pointer' : 'not-allowed', padding: '2px 8px', borderRadius: 4 }}
+          style={{ fontSize: 13, color: stringContainsSizePattern(value) ? 'var(--link-color)' : 'var(--secondary-color)', background: 'none', border: '1px solid var(--divider)', cursor: stringContainsSizePattern(value) ? 'pointer' : 'not-allowed', padding: '2px 8px', borderRadius: 4 }}
           disabled={!stringContainsSizePattern(value)}
           onClick={handleAutoReplaceSize}
         >Size</button>
         <button type="button"
-          style={{ fontSize: 13, color: stringContainsDatePattern(value) ? '#007aff' : '#bbb', background: 'none', border: '1px solid #eee', cursor: stringContainsDatePattern(value) ? 'pointer' : 'not-allowed', padding: '2px 8px', borderRadius: 4 }}
+          style={{ fontSize: 13, color: stringContainsDatePattern(value) ? 'var(--link-color)' : 'var(--secondary-color)', background: 'none', border: '1px solid var(--divider)', cursor: stringContainsDatePattern(value) ? 'pointer' : 'not-allowed', padding: '2px 8px', borderRadius: 4 }}
           disabled={!stringContainsDatePattern(value)}
           onClick={() => handleAutoReplaceDate(YYMMDD_TOKEN)}
         >YYMMDD</button>
         <button type="button"
-          style={{ fontSize: 13, color: stringContainsDatePattern(value) ? '#007aff' : '#bbb', background: 'none', border: '1px solid #eee', cursor: stringContainsDatePattern(value) ? 'pointer' : 'not-allowed', padding: '2px 8px', borderRadius: 4 }}
+          style={{ fontSize: 13, color: stringContainsDatePattern(value) ? 'var(--link-color)' : 'var(--secondary-color)', background: 'none', border: '1px solid var(--divider)', cursor: stringContainsDatePattern(value) ? 'pointer' : 'not-allowed', padding: '2px 8px', borderRadius: 4 }}
           disabled={!stringContainsDatePattern(value)}
           onClick={() => handleAutoReplaceDate(DDMMYY_TOKEN)}
         >DDMMYY</button>

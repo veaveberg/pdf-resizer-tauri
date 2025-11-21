@@ -821,10 +821,10 @@ function PDFDropZone() {
       boxSizing: 'border-box',
       paddingTop: 32,
       paddingBottom: 32,
-      background: '#ECECEC',
+      background: 'var(--bg-color)',
     }}>
       {/* Title: always show in Tauri */}
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 32, color: '#222', letterSpacing: 0.5 }}>PDF Resizer</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 32, color: 'var(--text-color)', letterSpacing: 0.5 }}>PDF Resizer</h1>
       <div
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -870,7 +870,7 @@ function PDFDropZone() {
               }} />
             )}
             {renderError && (
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'red', background: 'rgba(255,255,255,0.8)', zIndex: 20, borderRadius: 16, fontWeight: 600, fontSize: 16 }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', background: 'var(--modal-bg)', opacity: 0.9, zIndex: 20, borderRadius: 16, fontWeight: 600, fontSize: 16 }}>
                 {renderError}
               </div>
             )}
@@ -1157,7 +1157,7 @@ function PDFDropZone() {
                   e.preventDefault();
                 }
               }}
-              style={{ width: 36, fontSize: 14, padding: '2px 2px', borderRadius: 4, border: '1px solid #ccc', textAlign: 'right', marginRight: 0 }}
+              style={{ width: 36, fontSize: 14, padding: '2px 2px', borderRadius: 4, border: '1px solid var(--input-border)', textAlign: 'right', marginRight: 0, background: 'var(--input-bg)', color: 'var(--text-color)' }}
             />
             {/* Show trimmed size and pinch icon only if trim > 0 */}
             {trimmedForAspect && trim > 0 && (
@@ -1210,11 +1210,11 @@ function PDFDropZone() {
               ];
             })}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, margin: '8px auto 0 auto', background: 'none', border: 'none', color: 'black', fontSize: 16, cursor: 'pointer', fontWeight: 500
+              display: 'flex', alignItems: 'center', gap: 6, margin: '8px auto 0 auto', background: 'none', border: 'none', color: 'var(--text-color)', fontSize: 16, cursor: 'pointer', fontWeight: 500
             }}
           >
             <PlusCircleFill style={{ width: 20, height: 20, display: 'block', color: 'var(--secondary-color)' }} />
-            <span style={{ color: 'black' }}>Add Size</span>
+            <span style={{ color: 'var(--text-color)' }}>Add Size</span>
           </button>
         </div>
       )}
@@ -1248,7 +1248,7 @@ function PDFDropZone() {
             fontWeight: 500,
             fontSize: 16,
             marginBottom: 10,
-            color: '#222',
+            color: 'var(--text-color)',
             cursor: isExportDirSupported ? 'pointer' : 'not-allowed'
           }}>
             <input
@@ -1273,7 +1273,7 @@ function PDFDropZone() {
               type="button"
               onClick={handlePickFolder}
               disabled={!file}
-              style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #ccc', color: '#222', fontWeight: 500, fontSize: 15, cursor: !file ? 'not-allowed' : 'pointer', width: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', direction: 'rtl', textAlign: 'left', display: 'inline-block' }}
+              style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--input-border)', color: 'var(--text-color)', fontWeight: 500, fontSize: 15, cursor: !file ? 'not-allowed' : 'pointer', width: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', direction: 'rtl', textAlign: 'left', display: 'inline-block', background: 'var(--input-bg)' }}
             >
               <span style={{ direction: 'ltr', unicodeBidi: 'plaintext' }}>{exportFolder ? exportFolder : 'Browse…'}</span>
             </button>
@@ -1299,7 +1299,7 @@ function PDFDropZone() {
               value={subfolderName}
               onChange={e => setSubfolderName(e.target.value)}
               disabled={!file || !useSubfolder}
-              style={{ fontSize: 15, borderRadius: 6, border: '1px solid #ccc', padding: '4px 10px', width: 60 }}
+              style={{ fontSize: 15, borderRadius: 6, border: '1px solid var(--input-border)', padding: '4px 10px', width: 60, background: 'var(--input-bg)', color: 'var(--text-color)' }}
               placeholder="Subfolder name"
             />
           </div>

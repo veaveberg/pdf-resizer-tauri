@@ -233,7 +233,7 @@ export default function SizeAdjusterCard({
       <div style={{
         background: 'var(--button-bg)',
         borderRadius: 30,
-        border: '1px solid rgba(0,0,0,0.13)',
+        border: '1px solid var(--button-border)',
         padding: 18,
         width: 400,
         boxSizing: 'border-box',
@@ -259,7 +259,7 @@ export default function SizeAdjusterCard({
                 const preset = presets.find((p: any) => p.name === e.target.value);
                 if (preset) handlePreset(preset);
               }}
-              style={{ padding: '8px 8px', borderRadius: 14, border: '1px solid rgba(0,0,0,0.13)', height: 38, appearance: 'none', background: 'var(--bg-color)', color: 'var(--text-color)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+              style={{ padding: '8px 8px', borderRadius: 14, border: '1px solid var(--button-border)', height: 38, appearance: 'none', background: 'var(--bg-color)', color: 'var(--text-color)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
             >
               <option value="presets" disabled>Presets</option>
               {presets.map((p: any) => (
@@ -339,7 +339,7 @@ export default function SizeAdjusterCard({
                 onBlur={() => { handleWidthBlur(); onBlur(); }}
                 onKeyDown={handleWidthKeyDown}
                 min={1}
-                style={{ width: 60, textAlign: 'right', borderRadius: 4, border: '1px solid #ccc', fontSize: 14, padding: '2px 4px', display: 'inline-block' }}
+                style={{ width: 60, textAlign: 'right', borderRadius: 4, border: '1px solid var(--input-border)', fontSize: 14, padding: '2px 4px', display: 'inline-block', background: 'var(--input-bg)', color: 'var(--text-color)' }}
               />
             )}
             {/* Swap button between width and height */}
@@ -352,7 +352,7 @@ export default function SizeAdjusterCard({
                 pointerEvents: mode === 'fill' ? 'auto' : 'none',
                 background: 'none',
                 border: 'none',
-                color: '#000',
+                color: 'var(--text-color)',
                 cursor: 'pointer',
                 fontSize: 18,
                 display: 'flex',
@@ -362,7 +362,7 @@ export default function SizeAdjusterCard({
               }}
               title="Swap width and height"
             >
-              {SwapIcon && <SwapIcon style={{ width: 18, height: 18, display: 'block', color: '#000' }} />}
+              {SwapIcon && <SwapIcon style={{ width: 18, height: 18, display: 'block', color: 'var(--text-color)' }} />}
             </button>
             <span>Height:</span>
             {mode === 'fitHeight' ? (
@@ -376,7 +376,7 @@ export default function SizeAdjusterCard({
                 onBlur={() => { handleHeightBlur(); onBlur(); }}
                 onKeyDown={handleHeightKeyDown}
                 min={1}
-                style={{ width: 60, minWidth: 60, maxWidth: 60, textAlign: 'right', borderRadius: 4, border: '1px solid #ccc', fontSize: 14, padding: '2px 4px', display: 'inline-block' }}
+                style={{ width: 60, minWidth: 60, maxWidth: 60, textAlign: 'right', borderRadius: 4, border: '1px solid var(--input-border)', fontSize: 14, padding: '2px 4px', display: 'inline-block', background: 'var(--input-bg)', color: 'var(--text-color)' }}
               />
             )}
           </div>

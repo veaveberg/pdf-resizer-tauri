@@ -8,6 +8,13 @@
   --button-border: transparent;
   --link-color: #646cff;
   --link-hover: #747bff;
+  --input-bg: #ffffff;
+  --input-border: #ccc;
+  --modal-bg: #ffffff;
+  --modal-overlay: rgba(0, 0, 0, 0.4);
+  --divider: rgba(0, 0, 0, 0.1);
+  --hover-bg: rgba(0, 0, 0, 0.05);
+
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -18,6 +25,26 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --secondary-color: #a0a0a0;
+    --border-color-accent: #0a84ff;
+    --button-bg: #2f2f2f;
+    --button-text: #ffffff;
+    --button-border: #3f3f3f;
+    --link-color: #747bff;
+    --link-hover: #848bff;
+    --input-bg: #2f2f2f;
+    --input-border: #555;
+    --modal-bg: #242424;
+    --modal-overlay: rgba(0, 0, 0, 0.6);
+    --divider: rgba(255, 255, 255, 0.1);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+  }
 }
 
 

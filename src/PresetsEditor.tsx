@@ -252,12 +252,12 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.4)', zIndex: 2000,
+            background: 'var(--modal-overlay)', zIndex: 2000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             backdropFilter: 'blur(4px)',
         }}>
             <div style={{
-                background: 'var(--bg-color, #fff)',
+                background: 'var(--modal-bg)',
                 borderRadius: 16,
                 width: 400,
                 maxWidth: '90%',
@@ -270,17 +270,17 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
             }}>
                 <div style={{
                     padding: '16px 20px',
-                    borderBottom: '1px solid rgba(0,0,0,0.1)',
+                    borderBottom: '1px solid var(--divider)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    background: 'var(--bg-color, #fff)'
+                    background: 'var(--modal-bg)'
                 }}>
-                    <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-color, #222)' }}>Edit Presets</span>
+                    <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text-color)' }}>Edit Presets</span>
                     <button
                         onClick={() => { onSave(items); onClose(); }}
                         style={{
-                            background: 'none', border: 'none', color: 'var(--secondary-color, #007AFF)',
+                            background: 'none', border: 'none', color: 'var(--border-color-accent)',
                             fontWeight: 600, fontSize: 16, cursor: 'pointer', padding: 0
                         }}
                     >
@@ -292,7 +292,7 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                     flex: 1,
                     overflowY: 'auto',
                     padding: 0,
-                    background: 'var(--bg-color, #fff)'
+                    background: 'var(--modal-bg)'
                 }}>
                     {items.map((item, index) => (
                         <div
@@ -305,13 +305,13 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                                 display: 'flex',
                                 alignItems: 'center',
                                 padding: '12px 20px',
-                                borderBottom: '1px solid rgba(0,0,0,0.05)',
-                                background: draggedItemIndex === index ? 'rgba(0,0,0,0.05)' : 'transparent',
+                                borderBottom: '1px solid var(--divider)',
+                                background: draggedItemIndex === index ? 'var(--hover-bg)' : 'transparent',
                                 transition: 'background 0.2s'
                             }}
                         >
                             {/* Drag Handle */}
-                            <div style={{ marginRight: 12, cursor: editingIndex === null ? 'grab' : 'default', color: '#ccc', display: 'flex', alignItems: 'center', opacity: editingIndex === null ? 1 : 0.3 }}>
+                            <div style={{ marginRight: 12, cursor: editingIndex === null ? 'grab' : 'default', color: 'var(--secondary-color)', display: 'flex', alignItems: 'center', opacity: editingIndex === null ? 1 : 0.3 }}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
                                 </svg>
@@ -325,30 +325,30 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                                             value={editName}
                                             onChange={e => setEditName(e.target.value)}
                                             placeholder="Name"
-                                            style={{ width: 80, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--secondary-color)', fontSize: 14 }}
+                                            style={{ width: 80, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border-color-accent)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--text-color)' }}
                                             onKeyDown={e => { if (e.key === 'Enter') saveEdit(index); else if (e.key === 'Escape') cancelEdit(); }}
                                         />
                                         <input
                                             value={editWidth}
                                             onChange={e => handleInputChange(e, setEditWidth)}
                                             placeholder="W"
-                                            style={{ width: 50, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--secondary-color)', fontSize: 14 }}
+                                            style={{ width: 50, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border-color-accent)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--text-color)' }}
                                             onKeyDown={e => handleKeyDown(e, editWidth, setEditWidth, () => saveEdit(index), cancelEdit)}
                                         />
-                                        <span style={{ color: '#888' }}>×</span>
+                                        <span style={{ color: 'var(--secondary-color)' }}>×</span>
                                         <input
                                             value={editHeight}
                                             onChange={e => handleInputChange(e, setEditHeight)}
                                             placeholder="H"
-                                            style={{ width: 50, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--secondary-color)', fontSize: 14 }}
+                                            style={{ width: 50, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border-color-accent)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--text-color)' }}
                                             onKeyDown={e => handleKeyDown(e, editHeight, setEditHeight, () => saveEdit(index), cancelEdit)}
                                         />
                                     </>
                                 ) : (
                                     <>
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 500, color: 'var(--text-color, #333)', fontSize: 16 }}>{item.name}</div>
-                                            <div style={{ fontSize: 13, color: 'var(--secondary-color, #888)', marginTop: 2 }}>{item.width} × {item.height} mm</div>
+                                            <div style={{ fontWeight: 500, color: 'var(--text-color)', fontSize: 16 }}>{item.name}</div>
+                                            <div style={{ fontSize: 13, color: 'var(--secondary-color)', marginTop: 2 }}>{item.width} × {item.height} mm</div>
                                         </div>
                                     </>
                                 )}
@@ -391,7 +391,7 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                                             {confirmDeleteIndex === index ? (
                                                 <XMarkCircleFill style={{ width: 22, height: 22, color: '#FF3B30' }} />
                                             ) : (
-                                                <MinusCircleFill style={{ width: 22, height: 22, color: '#888' }} />
+                                                <MinusCircleFill style={{ width: 22, height: 22, color: 'var(--secondary-color)' }} />
                                             )}
                                         </button>
                                     </>
@@ -405,8 +405,8 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                         display: 'flex',
                         alignItems: 'center',
                         padding: '12px 20px',
-                        borderBottom: '1px solid rgba(0,0,0,0.05)',
-                        background: 'rgba(0,0,0,0.02)'
+                        borderBottom: '1px solid var(--divider)',
+                        background: 'var(--hover-bg)'
                     }}>
                         <div style={{ marginRight: 12, width: 16 }}></div> {/* Spacer for alignment */}
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -414,22 +414,22 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                                 value={newName}
                                 onChange={e => setNewName(e.target.value)}
                                 placeholder="New Preset"
-                                style={{ width: 90, padding: '6px 8px', borderRadius: 6, border: '1px solid #ccc', fontSize: 14, background: 'transparent' }}
+                                style={{ width: 90, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--input-border)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--text-color)' }}
                                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
                             />
                             <input
                                 value={newWidth}
                                 onChange={e => handleInputChange(e, setNewWidth)}
                                 placeholder="W"
-                                style={{ width: 50, padding: '6px 8px', borderRadius: 6, border: '1px solid #ccc', fontSize: 14, background: 'transparent' }}
+                                style={{ width: 50, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--input-border)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--text-color)' }}
                                 onKeyDown={e => handleKeyDown(e, newWidth, setNewWidth, handleAdd)}
                             />
-                            <span style={{ color: '#888' }}>×</span>
+                            <span style={{ color: 'var(--secondary-color)' }}>×</span>
                             <input
                                 value={newHeight}
                                 onChange={e => handleInputChange(e, setNewHeight)}
                                 placeholder="H"
-                                style={{ width: 50, padding: '6px 8px', borderRadius: 6, border: '1px solid #ccc', fontSize: 14, background: 'transparent' }}
+                                style={{ width: 50, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--input-border)', fontSize: 14, background: 'var(--input-bg)', color: 'var(--text-color)' }}
                                 onKeyDown={e => handleKeyDown(e, newHeight, setNewHeight, handleAdd)}
                             />
                         </div>
@@ -439,7 +439,7 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
                             style={{
                                 background: 'none', border: 'none', padding: 6,
                                 cursor: (!newName || !newWidth || !newHeight) ? 'default' : 'pointer',
-                                color: (!newName || !newWidth || !newHeight) ? '#ccc' : '#888',
+                                color: (!newName || !newWidth || !newHeight) ? 'var(--secondary-color)' : 'var(--secondary-color)',
                                 display: 'flex',
                                 alignItems: 'center', justifyContent: 'center',
                                 marginLeft: 4
@@ -453,7 +453,7 @@ export default function PresetsEditor({ presets, defaultPresets, onSave, onClose
 
                 {/* Restore Defaults Button */}
                 {isMissingDefaults() && (
-                    <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(0,0,0,0.1)', textAlign: 'center' }}>
+                    <div style={{ padding: '12px 20px', borderTop: '1px solid var(--divider)', textAlign: 'center' }}>
                         <button
                             onClick={restoreDefaults}
                             style={{

@@ -28,9 +28,9 @@ interface SaveButtonWithStatusProps {
 const statusIcons: Record<string, React.ReactNode> = {
   idle: <CircleDottedCircleFill style={{ color: 'var(--secondary-color)', width: 28, height: 28, opacity: 0.7, transition: 'opacity 0.3s' }} />,
   saving: <CircleDottedCircleFill style={{ color: 'var(--secondary-color)', width: 28, height: 28, opacity: 0.7, animation: 'spin 1s linear infinite' }} />,
-  success: <CheckmarkCircleFill style={{ color: 'green', width: 28, height: 28, opacity: 1, transition: 'opacity 0.3s' }} />,
-  conflict: <ExclamationmarkTriangleFill style={{ color: 'orange', width: 28, height: 28, opacity: 1, transition: 'opacity 0.3s' }} />, // Changed to orange for warning
-  error: <XmarkCircleFill style={{ color: 'red', width: 28, height: 28, opacity: 1, transition: 'opacity 0.3s' }} />,
+  success: <CheckmarkCircleFill style={{ color: '#34C759', width: 28, height: 28, opacity: 1, transition: 'opacity 0.3s' }} />,
+  conflict: <ExclamationmarkTriangleFill style={{ color: '#FF9500', width: 28, height: 28, opacity: 1, transition: 'opacity 0.3s' }} />, // Changed to orange for warning
+  error: <XmarkCircleFill style={{ color: '#FF3B30', width: 28, height: 28, opacity: 1, transition: 'opacity 0.3s' }} />,
 };
 
 const SaveButtonWithStatus: React.FC<SaveButtonWithStatusProps> = ({
@@ -65,7 +65,7 @@ const SaveButtonWithStatus: React.FC<SaveButtonWithStatusProps> = ({
                 />
                 <span style={{
                   flex: 1,
-                  color: f.isConflict ? '#222' : '#888',
+                  color: f.isConflict ? 'var(--text-color)' : 'var(--secondary-color)',
                   fontSize: 15,
                   backgroundColor: f.isConflict ? 'rgba(255, 255, 0, 0.2)' : 'transparent', // Highlight conflicting files
                   padding: '2px 4px',
@@ -77,9 +77,9 @@ const SaveButtonWithStatus: React.FC<SaveButtonWithStatusProps> = ({
           ))}
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button type="button" onClick={onCancel} style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: '#eee', color: '#333', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>Cancel</button>
+          <button type="button" onClick={onCancel} style={{ padding: '6px 18px', borderRadius: 6, border: '1px solid var(--button-border)', background: 'var(--button-bg)', color: 'var(--text-color)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>Cancel</button>
           {conflictFiles.some(f => f.isConflict && f.shouldOverwrite) ? (
-            <button type="button" onClick={onOverwrite} style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: '#e6b800', color: '#222', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>Overwrite</button>
+            <button type="button" onClick={onOverwrite} style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: '#FF9500', color: '#fff', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>Overwrite</button>
           ) : (
             <button type="button" onClick={onContinue} style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: 'var(--secondary-color)', color: '#fff', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>Continue</button>
           )}
@@ -90,10 +90,10 @@ const SaveButtonWithStatus: React.FC<SaveButtonWithStatusProps> = ({
     modalContent = (
       <div style={{ padding: 24, minWidth: 320, maxWidth: 400 }}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-          <ExclamationmarkTriangleFill style={{ color: 'red', width: 24, height: 24, marginRight: 10 }} />
+          <ExclamationmarkTriangleFill style={{ color: '#FF3B30', width: 24, height: 24, marginRight: 10 }} />
           <span style={{ fontWeight: 600, fontSize: 17 }}>Error</span>
         </div>
-        <div style={{ fontSize: 15, color: '#333', marginBottom: 18 }}>{errorMessage || 'An error occurred during export.'}</div>
+        <div style={{ fontSize: 15, color: 'var(--text-color)', marginBottom: 18 }}>{errorMessage || 'An error occurred during export.'}</div>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button type="button" onClick={onErrorAcknowledge} style={{ padding: '6px 18px', borderRadius: 6, border: 'none', background: 'var(--secondary-color)', color: '#fff', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}>OK</button>
         </div>
@@ -114,8 +114,8 @@ const SaveButtonWithStatus: React.FC<SaveButtonWithStatusProps> = ({
           fontWeight: 600,
           borderRadius: 10,
           border: 'none',
-          background: disabled ? '#ccc' : 'var(--secondary-color)',
-          color: '#fff',
+          background: disabled ? 'var(--button-bg)' : 'var(--secondary-color)',
+          color: disabled ? 'var(--secondary-color)' : '#fff',
           cursor: disabled ? 'not-allowed' : 'pointer',
           transition: 'background 0.2s',
         }}
@@ -134,10 +134,10 @@ const SaveButtonWithStatus: React.FC<SaveButtonWithStatusProps> = ({
         }
       `}</style>
       {showPopover && (status === 'conflict' || status === 'error') && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 4px 32px rgba(0,0,0,0.18)', minWidth: 320, maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'var(--modal-overlay)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--modal-bg)', borderRadius: 10, boxShadow: '0 4px 32px rgba(0,0,0,0.5)', minWidth: 320, maxWidth: 440, maxHeight: '90vh', overflowY: 'auto', position: 'relative', color: 'var(--text-color)' }}>
             {modalContent}
-            <button onClick={() => setShowPopover(false)} style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', color: '#888', fontSize: 22, cursor: 'pointer' }} aria-label="Close">×</button>
+            <button onClick={() => setShowPopover(false)} style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', color: 'var(--secondary-color)', fontSize: 22, cursor: 'pointer' }} aria-label="Close">×</button>
           </div>
         </div>
       )}
